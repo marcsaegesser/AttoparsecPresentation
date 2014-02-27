@@ -1,0 +1,9 @@
+.ensime*
+.projectile
+target
+*.log
+*.db
+\#*
+\.#*
+*~
+cert.pem
