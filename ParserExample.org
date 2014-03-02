@@ -1,0 +1,61 @@
+* Concrete Example - Expansion of char('a')
+#+BEGIN_CODE scala
+val ensureP = new Parser {
+  def apply[R](st0: State, kf: Failure[R], ks: Success[Unit,R]): TResult[R] =
+    if (st0.input.length >= n)  // We're called with n = 1
+      suspend(ks(st0,()))
+    else
+     suspend((demandInput ~> ensure(n))(st0,kf,ks))
+}
+val getP = new Parser {
+  def apply[R](st0: State, kf: Failure[R], ks: Success[String,R]): TResult[R] =
+    suspend(ks(st0,st0.input))
+}
+val dlP = discardLeft(ensureP, getP) = new Parser { // m = ensureP, n = getP
+  def apply[R](st0: State, kf: Failure[R], ks: Success[B,R]): TResult[R] =
+    suspend(m(st0,  // Invoke m.apply with current state this will be ensure(1)
+              kf,   // No change to failure handler
+              (s:State, a: A) => n(s, kf, ks)) // When m succeeds invoke n.apply with new state and the result of m
+           )
+}
+val fmP = dlP.flatMap(f) = new Parser {
+  def f(s: String) = {
+    val c = s.charAt(0)
+    if (p(c)) put(s.substring(1)) ~> ok(c)
+    else err(what)
+  }
+  def apply[R](st0: State, kf: Failure[R], ks: Success[B,R]): TResult[R] =
+    suspend(m(st0,  // Invoke m.apply.  this will be dlP
+              kf,
+              (s:State, a:A) => f(a)(s,kf,ks))  // Apply f to result of m, then invoke apply on the resulting parser
+           )
+}
+//These get created during executation of the parser
+val putP = new Parser {
+  def apply[R](st0: State, kf: Failure[R], ks: Success[Unit,R]): TResult[R] = 
+    suspend(ks(st0 copy (input = s), ()))
+}
+val okP = new Parser {
+  def apply[R](st0: State, kf: Failure[R], ks: Success[A,R]): TResult[R] = 
+    suspend(ks(st0,a))
+}
+val dl2P = new discardLeft(putP, okP) = new Parser { // m = putP, n = okP
+  def apply[R](st0: State, kf: Failure[R], ks: Success[A,R]): TResult[R] =
+    suspend(m(st0,  // invoke m.apply.  This will be putP
+              kf,
+              (st1:State, a: A) => n(st1, kf, (st2: State, b: B) => ks(st2, a)))  // When m succeeds invoke n.apply
+           )
+}
+#+END_CODE
+* Concrete Example - Trace through char('a').parserOnly("abc")
+#+BEGIN_CODE scala
+parseOnly(fmp, "abc")
+fmP.apply(State("abc", "", true), done(Fail), done(Done))
+  dlP.apply(State("abc", "", true), done(Fail), (s, a) => f(a).apply(s, done(Fail), done(Done)))
+    ensureP(1).apply(State("abc", "", true), done(Fail), (s, a) => getP(s, kf, (s, a) => f(a).apply(s, done(Fail), done(Done))))
+      getP.apply(State("abc", "", true), done(Fail), (s, a) => f(a).apply(s, done(Fail), done(Done)))
+        dlp2P.apply(State("abc", "", true), done(Fail), (s, a) => ok(s, kf, (s, a) => ok.apply(s, done(Fail), done(Done))))
+          putP.apply(State("abc", "", true), done(Fail), done(Done))
+            okP.apply((State("bc", "", true), done(Fail), done(Done))
+              done(Done(State("bc", "", true), a)
+#+END_CODE

@@ -13,5 +13,6 @@ initialCommands :=
   """import scalaz._
      import Scalaz._
      import atto._
-     import Atto._"""
+     import Atto._
+     import org.saegesser.atto._"""
 
