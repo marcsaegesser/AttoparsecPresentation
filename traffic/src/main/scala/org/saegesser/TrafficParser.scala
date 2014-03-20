@@ -16,11 +16,14 @@ object TrafficParser {
   def whiteSep[A](p: Parser[A]): Parser[List[A]] = sepBy(p, whiteSpace)
   val quotedString: Parser[String] = quoted(stringOf(notChar('"')))
 
-  object DateTimeBuilder {
-    def apply(month: Int, day: Int, year: Int, hour: Int, min: Int, sec: Int) = new DateTime(year, month, day, hour, min, sec)
-  }
-
-  val dateTimeP = (int <~ char('/') |@| int <~ char('/') |@| int <~ char(' ') |@| int <~ char(':') |@| int <~ char(':') |@| int)(DateTimeBuilder.apply)
+  val dateTimeP = for {
+    month <- int <~ char('/')
+    day <- int <~ char('/')
+    year <- int <~ char(' ')
+    hour <- int <~ char(':')
+    min <- int <~ char(':')
+    sec <- int
+  } yield new DateTime(year, month, day, hour, min, sec)
 
   val pointP = (double <~ char(',') |@| double)(LatLong.apply)
   val pointsP = opt(whiteSpace) ~> whiteSep(pointP) <~ opt(whiteSpace)

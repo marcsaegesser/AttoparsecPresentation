@@ -47,15 +47,15 @@ val dl2P = new discardLeft(putP, okP) = new Parser { // m = putP, n = okP
            )
 }
 #+END_CODE
-* Concrete Example - Trace through char('a').parserOnly("abc")
+* Concrete Example - Trace through char('a').parseOnly("abc")
 #+BEGIN_CODE scala
 parseOnly(fmp, "abc")
 fmP.apply(State("abc", "", true), done(Fail), done(Done))
-  dlP.apply(State("abc", "", true), done(Fail), (s, a) => f(a).apply(s, done(Fail), done(Done)))
-    ensureP(1).apply(State("abc", "", true), done(Fail), (s, a) => getP(s, kf, (s, a) => f(a).apply(s, done(Fail), done(Done))))
-      getP.apply(State("abc", "", true), done(Fail), (s, a) => f(a).apply(s, done(Fail), done(Done)))
-        dlp2P.apply(State("abc", "", true), done(Fail), (s, a) => ok(s, kf, (s, a) => ok.apply(s, done(Fail), done(Done))))
-          putP.apply(State("abc", "", true), done(Fail), done(Done))
-            okP.apply((State("bc", "", true), done(Fail), done(Done))
-              done(Done(State("bc", "", true), a)
+ dlP.apply(State("abc", "", true), done(Fail), (s, a) => f(a).apply(s, done(Fail), done(Done)))
+  ensureP(1).apply(State("abc", "", true), done(Fail), (s, a) => getP(s, kf, (s, a) => f(a).apply(s, done(Fail), done(Done))))
+   getP.apply(State("abc", "", true), done(Fail), (s, a) => f(a).apply(s, done(Fail), done(Done)))
+    dlp2P.apply(State("abc", "", true), done(Fail), (s, a) => ok(s, kf, (s, a) => ok.apply(s, done(Fail), done(Done))))
+     putP.apply(State("abc", "", true), done(Fail), done(Done))
+      okP.apply((State("bc", "", true), done(Fail), done(Done))
+       done(Done(State("bc", "", true), a)
 #+END_CODE
